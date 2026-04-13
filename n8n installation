@@ -8,13 +8,13 @@ Before we proceed, the following are pre-requisite required.
 ## Installation
 
 Step 1: Confirm Docker is successfully installed on Machine
-` docker -v `
+`docker -v`
 
 Step 2: confirm status of Docker Daemon
-``systemctl status docker``
+`systemctl status docker`
 this must show active running, else you will have to run
-``systemctl enable docker``
-``systemctl start docker``
+`systemctl enable docker`
+`systemctl start docker`
 
 Step 3: Pull n8n Image
 ``docker.n8n.io/n8nio/n8n:latest``
