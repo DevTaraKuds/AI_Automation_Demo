@@ -1,4 +1,7 @@
-<img width="2880" height="1800" alt="Screenshot (470)" src="https://github.com/user-attachments/assets/e9f9256d-001e-4b9f-9d78-0de08fca59eb" />
+#n8n Installation Guide
+
+![n8n welcome screen](https://github.com/user-attachments/assets/a19c4641-4636-4cc6-8227-9b84a98084e6)
+
 Follow through a step by step process of installing n8n for AI automation.
 
 ## Pre-requisite
@@ -34,10 +37,10 @@ This references the image pulled and the volume created
 Step 7: verify Docker container is running
 ``docker ps``
 
-For a video demo of these process, watch my walkthrough [view here](https://youtu.be/LefBKOtGZwo "link to video demo").
-
 Step 8: Launch n8n dashboard on your localhost via the browser
 From browser, type 
 ``localhost:5878``
 
 Step 9: Set up you n8n profile if you haven't yet done so previously
+
+*For a video demo of these process, watch my walkthrough [view here](https://youtu.be/LefBKOtGZwo "link to video demo").*
