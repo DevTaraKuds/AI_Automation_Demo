@@ -1,4 +1,4 @@
-#n8n Installation Guide
+# n8n Installation Guide
 
 ![n8n welcome screen](https://github.com/user-attachments/assets/a19c4641-4636-4cc6-8227-9b84a98084e6)
 
