@@ -1,3 +1,4 @@
+<img width="2880" height="1800" alt="Screenshot (470)" src="https://github.com/user-attachments/assets/e9f9256d-001e-4b9f-9d78-0de08fca59eb" />
 Follow through a step by step process of installing n8n for AI automation.
 
 ## Pre-requisite
