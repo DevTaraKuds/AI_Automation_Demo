@@ -1,0 +1,149 @@
+{
+  "name": "Simple Phishing Incident Triage Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "security-inbox",
+        "options": {
+
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [0, 0],
+      "id": "4f030120-789c-49c5-9e50-efeb16059844",
+      "name": "Ingest Emails",
+      "webhookId": "01e08695-c9a8-4732-b47c-86dda0ac70e2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d3340d0f-bcad-443e-ac2e-5b65952ee6f2",
+              "name": "email_sender",
+              "value": "={{ $json.body.message.from }}",
+              "type": "string"
+            },
+            {
+              "id": "7507d3a5-b5e9-41cd-8f94-dff60b0e058b",
+              "name": "email_subject",
+              "value": "={{ $json.body.message.subject }}",
+              "type": "string"
+            },
+            {
+              "id": "345eca1c-64a1-471e-95e2-93ef74a59c75",
+              "name": "email_body",
+              "value": "={{ $json.body.message.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+
+        }
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [224, 0],
+      "id": "d44f32e7-696b-4f0e-a116-8b68de2f6eb0",
+      "name": "Parse Fields"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are an email security triage assistant.\n\nAnalyze this inbound email and return ONLY valid JSON.\n\nYour tasks:\n1. Extract the sender email.\n2. Extract the subject.\n3. Extract any URLs found in the email.\n4. Determine whether the email is likely phishing.\n5. Assign a risk score and severity.\n6. Summarize why.\n7. Recommend an action.\n\nImportant rules:\n- Urgency, account verification requests, login prompts, OTP requests, payment requests, password resets, suspicious links, and social engineering language should increase risk.\n- Public email providers can still be used in phishing.\n- Return raw JSON only.\n- Do not use markdown.\n- Do not wrap the response in code fences.\n\n\nEmail:\nSender:{{ $json.email_sender }}\nSubject: {{ $json.email_subject }}\nBody: {{ $json.email_body }}\n\nScoring scale:\n- 75 to 100 = High\n- 40 to 74 = Medium\n- 0 to 39 = Low\n\nReturn exactly this JSON structure:\n{\n \"sender_email\": \"\",\n \"subject\": \"\",\n \"urls\": [],\n \"sender_domain\": \"\",\n \"risk_score\": 0,\n \"severity\": \"Low\",\n \"phishing_likely\": false,\n \"summary\": \"\",\n \"reasons\": [],\n \"recommended_action\": \"\"\n}\n"
+            }
+          ]
+        },
+        "builtInTools": {
+
+        },
+        "options": {
+
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [448, 0],
+      "id": "0eaeb0f9-13ef-47f8-8b1c-842db2d6be17",
+      "name": "Analyse Email Content",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "nkljdl2hqKvjiFUc",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "let parsed = {};\nlet rawText = '';\n\ntry {\n  rawText =\n    $json.content?.parts?.[0]?.text ||\n    $json.candidates?.[0]?.content?.parts?.[0]?.text ||\n    $json.text ||\n    '';\n\n  // Remove code fences if present\n  const cleaned = typeof rawText === 'string'\n    ? rawText.replace(/```json|```/gi, '').trim()\n    : '';\n\n  // Try direct parse first (best case)\n  try {\n    parsed = JSON.parse(cleaned);\n  } catch {\n    // Fallback: extract JSON block (greedy to capture full object)\n    const match = cleaned.match(/\\{[\\s\\S]*\\}/);\n    if (match) {\n      parsed = JSON.parse(match[0]);\n    }\n  }\n\n} catch (error) {\n  parsed = {\n    error: 'Parsing failed',\n    raw_output: rawText\n  };\n}\n\nreturn {\n  json: {\n    email: parsed.subject ?? '',\n    is_suspicious: parsed.phishing_likely ?? false,\n    summary: parsed.summary ?? '',\n    reasons: parsed.reasons ?? []\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [800, 0],
+      "id": "cecf0b10-a577-4740-8ac3-cdebd01fde9e",
+      "name": "Display Results"
+    }
+  ],
+  "pinData": {
+
+  },
+  "connections": {
+    "Ingest Emails": {
+      "main": [
+        [
+          {
+            "node": "Parse Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Fields": {
+      "main": [
+        [
+          {
+            "node": "Analyse Email Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyse Email Content": {
+      "main": [
+        [
+          {
+            "node": "Display Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "59be294a-f05f-4050-9d42-5aff3f498f2f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "118a8ff45d5142cc2a8a7e09d4bf789cdb68803b1ae5db09058529e7058e318d"
+  },
+  "id": "JEr2wzJSSJI6QDS3",
+  "tags": []
+}
